@@ -24,6 +24,8 @@ const createComment = async (req, res) => {
       data: newComment,
     });
   } catch (error) {
+    console.error("Error creating comment:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -54,7 +56,7 @@ const getCommentsForLead = async (req, res) => {
         commentText: comment.commentText,
         author: comment.author.name,
         createdAt: comment.createdAt,
-      }))
+      })),
     );
   } catch (error) {
     res.status(500).json({
@@ -62,7 +64,6 @@ const getCommentsForLead = async (req, res) => {
     });
   }
 };
-
 
 module.exports = {
   createComment,
