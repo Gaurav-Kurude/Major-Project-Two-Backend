@@ -43,14 +43,15 @@ const createAgent = async (req, res) => {
 
 const getAllSalesAgents = async (req, res) => {
   try {
-    const salesAgents = await SalesAgent.find();
+    const agents = await SalesAgent.find();
 
     res.status(200).json({
-      message: "Sales agents fetched successfully",
-      salesAgents: salesAgents,
+      success: true,
+      agents,
     });
   } catch (error) {
     res.status(500).json({
+      success: false,
       message: "Failed to fetch sales agents",
       error: error.message,
     });
