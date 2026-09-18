@@ -166,7 +166,7 @@ const getLeadById = async (req, res) => {
     }
 
     // Find lead and populate sales agent
-    const lead = await Lead.findById(id).populate("salesAgents", "name email");
+    const lead = await Lead.findById(req.params.id).populate("salesAgent");
 
     // Lead not found
     if (!lead) {
