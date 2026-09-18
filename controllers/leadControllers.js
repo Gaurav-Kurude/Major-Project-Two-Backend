@@ -3,39 +3,34 @@ const Lead = require("../models/lead.models");
 
 const createLead = async (req, res) => {
   try {
-    const { name, source, salesAgents, status, tags, timeToClose, priority } =
+    const { name, source, salesAgent, status, priority, tags, timeToClose } =
       req.body;
 
-    if (
-      !name ||
-      !source ||
-      !salesAgents ||
-      salesAgents.length === 0 ||
-      !timeToClose ||
-      !priority
-    ) {
+    if (!name || !source || !salesAgent || !timeToClose) {
       return res.status(400).json({
         success: false,
-        message: "Name, source, salesAgents and timeToClose are required",
+        message: "Name, source, salesAgent and timeToClose are required.",
       });
     }
 
-    const lead = await Lead.create({
+    const newLead = await Lead.create({
       name,
       source,
-      salesAgents,
+      salesAgent,
       status,
+      priority,
       tags,
       timeToClose,
-      priority,
     });
 
     res.status(201).json({
       success: true,
       message: "Lead created successfully",
-      data: lead,
+      lead: newLead,
     });
   } catch (error) {
+    console.error("Create lead error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
@@ -123,7 +118,7 @@ const updateLead = async (req, res) => {
       success: false,
       message: error.message,
     });
-  } 
+  }
 };
 
 // DELETE LEAD

@@ -20,10 +20,11 @@ const leadSchema = new mongoose.Schema({
     ],
   },
 
-  salesAgents: [
+  salesAgent: [
     {
       type: mongoose.Schema.Types.ObjectId,
       ref: "SalesAgent",
+      required: true,
     },
   ],
 
