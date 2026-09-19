@@ -40,14 +40,15 @@ const createLead = async (req, res) => {
 
 const getAllLeads = async (req, res) => {
   try {
-    const leads = await Lead.find().populate("salesAgents", "name email");
+    const leads = await Lead.find().populate("salesAgent");
 
     res.status(200).json({
       success: true,
-      message: "Leads fetched successfully",
-      leads: leads,
+      leads,
     });
   } catch (error) {
+    console.error("Error fetching leads:", error);
+
     res.status(500).json({
       success: false,
       message: "Failed to fetch leads",

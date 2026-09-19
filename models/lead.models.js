@@ -20,13 +20,11 @@ const leadSchema = new mongoose.Schema({
     ],
   },
 
-  salesAgent: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "SalesAgent",
-      required: true,
-    },
-  ],
+  salesAgent: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "SalesAgent",
+    required: true,
+  },
 
   status: {
     type: String,
