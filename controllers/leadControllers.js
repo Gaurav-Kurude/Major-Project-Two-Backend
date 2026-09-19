@@ -57,50 +57,56 @@ const getAllLeads = async (req, res) => {
   }
 };
 
-//UPDATE LEAD
+// UPDATE LEAD
 const updateLead = async (req, res) => {
   try {
     const { id } = req.params;
-    const { name, source, salesAgents, status, tags, timeToClose, priority } =
+
+    const { name, source, salesAgent, status, tags, timeToClose, priority } =
       req.body;
 
-    //1. Check if ID is valid ObjectId
+    // 1. Check if ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
         message: `Invalid Lead ID '${id}'.`,
       });
     }
-    //2. Check required fields
-    if (!name || !source || !salesAgents || !timeToClose || !priority) {
+
+    // 2. Check required fields
+    if (!name || !source || !salesAgent || !timeToClose || !priority) {
       return res.status(400).json({
         success: false,
         message:
-          "Name, source, salesAgents, timeToClose and priority are required.",
+          "Name, source, salesAgent, timeToClose and priority are required.",
       });
     }
+
     // 3. Create update data
-    let updateData = {
+    const updateData = {
       name,
       source,
-      salesAgents,
+      salesAgent,
       status,
       tags,
       timeToClose,
       priority,
       updatedAt: Date.now(),
     };
-    //4. If lead is closed, save the closing date
+
+    // 4. Closing date
     if (status === "Closed") {
       updateData.closedAt = new Date();
     } else {
       updateData.closedAt = undefined;
     }
-    //5. Update lead
+
+    // 5. Update lead
     const updatedLead = await Lead.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
-    }).populate("salesAgents", "name email");
+    }).populate("salesAgent", "name email");
+
     // 6. Lead not found
     if (!updatedLead) {
       return res.status(404).json({
@@ -108,6 +114,7 @@ const updateLead = async (req, res) => {
         message: `Lead with ID '${id}' not found.`,
       });
     }
+
     // 7. Success response
     res.status(200).json({
       success: true,
@@ -115,6 +122,8 @@ const updateLead = async (req, res) => {
       lead: updatedLead,
     });
   } catch (error) {
+    console.error("Update lead error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
