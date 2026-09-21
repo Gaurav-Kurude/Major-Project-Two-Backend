@@ -1,15 +1,17 @@
 const mongoose = require("mongoose");
 const Lead = require("../models/lead.models");
 
+// CREATE LEAD
 const createLead = async (req, res) => {
   try {
     const { name, source, salesAgent, status, priority, tags, timeToClose } =
       req.body;
 
-    if (!name || !source || !salesAgent || !timeToClose) {
+    if (!name || !source || !salesAgent || !timeToClose || !priority) {
       return res.status(400).json({
         success: false,
-        message: "Name, source, salesAgent and timeToClose are required.",
+        message:
+          "Name, source, salesAgent, timeToClose and priority are required.",
       });
     }
 
@@ -23,10 +25,15 @@ const createLead = async (req, res) => {
       timeToClose,
     });
 
+    const populatedLead = await Lead.findById(newLead._id).populate(
+      "salesAgent",
+      "name email",
+    );
+
     res.status(201).json({
       success: true,
       message: "Lead created successfully",
-      lead: newLead,
+      lead: populatedLead,
     });
   } catch (error) {
     console.error("Create lead error:", error);
@@ -38,9 +45,10 @@ const createLead = async (req, res) => {
   }
 };
 
+// GET ALL LEADS
 const getAllLeads = async (req, res) => {
   try {
-    const leads = await Lead.find().populate("salesAgent");
+    const leads = await Lead.find().populate("salesAgent", "name email");
 
     res.status(200).json({
       success: true,
@@ -65,7 +73,7 @@ const updateLead = async (req, res) => {
     const { name, source, salesAgent, status, tags, timeToClose, priority } =
       req.body;
 
-    // 1. Check if ID is valid
+    // Check if Lead ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -73,7 +81,7 @@ const updateLead = async (req, res) => {
       });
     }
 
-    // 2. Check required fields
+    // Check required fields
     if (!name || !source || !salesAgent || !timeToClose || !priority) {
       return res.status(400).json({
         success: false,
@@ -82,7 +90,7 @@ const updateLead = async (req, res) => {
       });
     }
 
-    // 3. Create update data
+    // Prepare update data
     const updateData = {
       name,
       source,
@@ -94,20 +102,20 @@ const updateLead = async (req, res) => {
       updatedAt: Date.now(),
     };
 
-    // 4. Closing date
+    // Update closedAt
     if (status === "Closed") {
       updateData.closedAt = new Date();
     } else {
       updateData.closedAt = undefined;
     }
 
-    // 5. Update lead
+    // Update lead
     const updatedLead = await Lead.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).populate("salesAgent", "name email");
 
-    // 6. Lead not found
+    // Lead not found
     if (!updatedLead) {
       return res.status(404).json({
         success: false,
@@ -115,7 +123,6 @@ const updateLead = async (req, res) => {
       });
     }
 
-    // 7. Success response
     res.status(200).json({
       success: true,
       message: "Lead updated successfully",
@@ -136,10 +143,11 @@ const deleteLead = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if ID is valid
+    // Check if Lead ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
-        error: `Invalid Lead ID '${id}'.`,
+        success: false,
+        message: `Invalid Lead ID '${id}'.`,
       });
     }
 
@@ -148,16 +156,21 @@ const deleteLead = async (req, res) => {
     // Lead not found
     if (!deletedLead) {
       return res.status(404).json({
-        error: `Lead with ID '${id}' not found.`,
+        success: false,
+        message: `Lead with ID '${id}' not found.`,
       });
     }
 
     res.status(200).json({
+      success: true,
       message: "Lead deleted successfully.",
     });
   } catch (error) {
+    console.error("Delete lead error:", error);
+
     res.status(500).json({
-      error: error.message,
+      success: false,
+      message: error.message,
     });
   }
 };
@@ -167,7 +180,7 @@ const getLeadById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Check if ID is valid
+    // Check if Lead ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -176,7 +189,7 @@ const getLeadById = async (req, res) => {
     }
 
     // Find lead and populate sales agent
-    const lead = await Lead.findById(req.params.id).populate("salesAgent");
+    const lead = await Lead.findById(id).populate("salesAgent", "name email");
 
     // Lead not found
     if (!lead) {
@@ -189,9 +202,11 @@ const getLeadById = async (req, res) => {
     res.status(200).json({
       success: true,
       message: "Lead fetched successfully",
-      lead: lead,
+      lead,
     });
   } catch (error) {
+    console.error("Get lead by ID error:", error);
+
     res.status(500).json({
       success: false,
       message: error.message,
