@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Lead = require("../models/lead.models");
+const Tag = require("../models/tag.models");
 
 // CREATE LEAD
 const createLead = async (req, res) => {
@@ -88,6 +89,27 @@ const updateLead = async (req, res) => {
         message:
           "Name, source, salesAgent, timeToClose and priority are required.",
       });
+    }
+
+    // Create new tags in Tag collection if they don't already exist
+    if (Array.isArray(tags)) {
+      for (const tagName of tags) {
+        const trimmedTag = tagName.trim();
+
+        if (!trimmedTag) {
+          continue;
+        }
+
+        await Tag.findOneAndUpdate(
+          { name: trimmedTag },
+          { name: trimmedTag },
+          {
+            upsert: true,
+            new: true,
+            setDefaultsOnInsert: true,
+          },
+        );
+      }
     }
 
     // Prepare update data
