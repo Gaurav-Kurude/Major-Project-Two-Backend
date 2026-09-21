@@ -74,7 +74,6 @@ const updateLead = async (req, res) => {
     const { name, source, salesAgent, status, tags, timeToClose, priority } =
       req.body;
 
-    // Check if Lead ID is valid
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({
         success: false,
@@ -82,7 +81,6 @@ const updateLead = async (req, res) => {
       });
     }
 
-    // Check required fields
     if (!name || !source || !salesAgent || !timeToClose || !priority) {
       return res.status(400).json({
         success: false,
@@ -91,58 +89,50 @@ const updateLead = async (req, res) => {
       });
     }
 
-    // Create new tags in Tag collection if they don't already exist
-    if (Array.isArray(tags)) {
-      for (const tagName of tags) {
-        const trimmedTag = tagName.trim();
+    // Make sure tags is always an array
+    const updatedTags = Array.isArray(tags) ? tags : [];
 
-        if (!trimmedTag) {
-          continue;
-        }
-
-        await Tag.findOneAndUpdate(
-          { name: trimmedTag },
-          { name: trimmedTag },
-          {
-            upsert: true,
-            new: true,
-            setDefaultsOnInsert: true,
-          },
-        );
-      }
-    }
-
-    // Prepare update data
+    // Update lead
     const updateData = {
       name,
       source,
       salesAgent,
       status,
-      tags,
+      tags: updatedTags,
       timeToClose,
       priority,
       updatedAt: Date.now(),
     };
 
-    // Update closedAt
     if (status === "Closed") {
       updateData.closedAt = new Date();
     } else {
       updateData.closedAt = undefined;
     }
 
-    // Update lead
     const updatedLead = await Lead.findByIdAndUpdate(id, updateData, {
       new: true,
       runValidators: true,
     }).populate("salesAgent", "name email");
 
-    // Lead not found
     if (!updatedLead) {
       return res.status(404).json({
         success: false,
         message: `Lead with ID '${id}' not found.`,
       });
+    }
+
+    // Create new tags in Tag collection
+    for (const tagName of updatedTags) {
+      await Tag.findOneAndUpdate(
+        { name: tagName },
+        { name: tagName },
+        {
+          upsert: true,
+          new: true,
+          setDefaultsOnInsert: true,
+        },
+      );
     }
 
     res.status(200).json({
