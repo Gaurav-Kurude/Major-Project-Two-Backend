@@ -5,10 +5,6 @@ const cors = require("cors");
 
 const { initializeDatabase } = require("./db/db.connect");
 
-// const Comment = require("./models/comment.models");
-// const Lead = require("./models/lead.models");
-// const salesAgent = require("./models/salesAgent.models");
-// const tag = require("./models/tag.models");
 const leadRoutes = require("./routes/leadRoutes");
 const salesAgentRoutes = require("./routes/salesAgentRoutes");
 const commentRoutes = require("./routes/commentRoutes");
